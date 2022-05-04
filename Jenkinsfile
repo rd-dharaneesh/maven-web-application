@@ -34,6 +34,8 @@ properties([buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKe
 def mavenHome = tool name: "maven3.8.4"
     
     try{
+      sendSlackNotification('STARTED')
+      
     stage('CheckoutCode'){
 git branch: 'development', url: 'https://github.com/rd-dharaneesh/maven-web-application.git'
 }
