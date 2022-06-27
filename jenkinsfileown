@@ -1,0 +1,29 @@
+node{
+
+properties([buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '5')), [$class: 'JobLocalConfiguration', changeReasonComment: ''], pipelineTriggers([pollSCM('* * * * *')])])
+
+def mavenHome = tool name: "maven3.8.4"
+    
+    stage('checkout'){
+        git branch: 'development', url: 'https://github.com/rd-dharaneesh/maven-web-application.git'
+    }
+    
+    stage('build'){
+        sh "${mavenHome}/bin/mvn clean package"
+    }
+    
+     stage('sonarreport'){
+        sh "${mavenHome}/bin/mvn sonar:sonar"
+    }
+    
+     stage('uploadintonexus'){
+        sh "${mavenHome}/bin/mvn deploy"
+    }
+    
+    stage('deployintotomcatserver'){
+        sshagent(['33826c5c-51c6-4c54-8182-6e04baa0a0f0']) {
+        sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@13.234.122.155:/opt/apache-tomcat-9.0.64/webapps"
+            
+        }
+    }
+}
